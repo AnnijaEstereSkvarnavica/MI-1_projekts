@@ -1,41 +1,90 @@
 import tkinter as tk
+from tkinter import messagebox
 from random import randint
 
 class Game:
-    def __init__(self, root, length):
+    def __init__(self, root):
         self.root = root
-        self.length = length
-        self.sequence = [randint(1, 4) for _ in range(length)]  # Ģenerē skaitļu virkni
+        self.length = None
+        self.sequence = []
         self.points = 0
         self.bank_points = 0
+        self.turn_number = 0
         self.selected_index = None
+        self.player_starts = None  
 
-        self.label = tk.Label(root, text=f"Skaitļu virkne: {self.sequence}")
+        self.label = tk.Label(root, text="Skaitļu virkne: ")
         self.label.pack()
 
-        self.points_label = tk.Label(root, text=f"Tavi punkti: {self.points}")
+        self.points_label = tk.Label(root, text="Tavi punkti: 0")
         self.points_label.pack()
 
-        self.bank_points_label = tk.Label(root, text=f"Bankas punkti: {self.bank_points}")
+        self.bank_points_label = tk.Label(root, text="Bankas punkti: 0")
         self.bank_points_label.pack()
 
-        self.number_buttons = []
-        for index, number in enumerate(self.sequence):
-            button = tk.Button(root, text=str(number), command=lambda i=index: self.select_number(i))
-            button.pack(side="left")
-            self.number_buttons.append(button)
+        self.turn_label = tk.Label(root, text="Gājiens: 0")
+        self.turn_label.pack()
 
-        self.add_button = tk.Button(root, text="Pievienot punktus", command=self.add_to_points)
+        self.last_CPU_move_label = tk.Label(root, text="Pēdējais CPU gājiens:")
+        self.last_CPU_move_label.pack()
+
+        self.number_buttons = []
+
+        self.add_button = tk.Button(root, text="Pievienot punktus", command=self.add_to_points, state=tk.DISABLED)
         self.add_button.pack(side="left")
 
-        self.split_button = tk.Button(root, text="Sadala", command=self.split_number)
+        self.split_button = tk.Button(root, text="Sadala", command=self.split_number, state=tk.DISABLED)
         self.split_button.pack(side="right")
+
+        self.start_button_player = tk.Button(root, text="Spēlētājs sāk", command=lambda: self.set_player_starts(True))
+        self.start_button_player.pack()
+
+        self.start_button_cpu = tk.Button(root, text="CPU sāk", command=lambda: self.set_player_starts(False))
+        self.start_button_cpu.pack()
+
+        self.length_label = tk.Label(root, text="Ievadiet cik skaitļu vēlaties generēt (no 15 līdz 20):")
+        self.length_label.pack()
+
+        self.length_entry = tk.Entry(root)
+        self.length_entry.pack()
+
+        self.set_length_button = tk.Button(root, text="Iestatīt garumu", command=self.set_length)
+        self.set_length_button.pack()
+
+    def set_length(self):
+        try:
+            length = int(self.length_entry.get())
+            if 15 <= length <= 20:
+                self.length = length
+                self.sequence = [randint(1, 4) for _ in range(length)]
+                self.update_display()
+            else:
+                messagebox.showerror("Kļūda", "Skaitļu skaits ir jābūt no 15 līdz 20.")
+        except ValueError:
+            messagebox.showerror("Kļūda", "Lūdzu, ievadiet skaitli.")
+
+    def set_player_starts(self, player_starts):
+        self.player_starts = player_starts
+        self.start_button_player.config(state=tk.DISABLED)
+        self.start_button_cpu.config(state=tk.DISABLED)
+        self.length_entry.config(state=tk.DISABLED)  # Disable the length entry
+        self.set_length_button.config(state=tk.DISABLED)  # Disable the set length button
+        if player_starts:
+            for button in self.number_buttons:
+                button.config(state=tk.NORMAL)
+            self.add_button.config(state=tk.NORMAL)
+            self.split_button.config(state=tk.NORMAL)
+        else:
+            self.cpu_turn()
+
 
     def select_number(self, index):
         if self.selected_index is not None:
             self.number_buttons[self.selected_index].config(relief=tk.RAISED)
         self.selected_index = index
         self.number_buttons[index].config(relief=tk.SUNKEN)
+        self.add_button.config(state=tk.NORMAL)
+        self.split_button.config(state=tk.NORMAL)
 
     def add_to_points(self):
         if self.selected_index is not None:
@@ -43,35 +92,39 @@ class Game:
             self.points += selected_number
             self.number_buttons[self.selected_index].destroy()
             self.number_buttons.pop(self.selected_index)
+            self.turn_number += 1
             self.update_display()
 
     def split_number(self):
-        if self.bank_points > 0 and self.selected_index is not None:
+        if self.selected_index is not None:
             selected_number = self.sequence[self.selected_index]
             if selected_number == 2:
-                self.bank_points -= 1
+                self.bank_points += 1
                 self.sequence[self.selected_index] = 1
                 self.sequence.insert(self.selected_index + 1, 1)
+                self.turn_number += 1
             elif selected_number == 4:
                 self.points += 2
-                self.bank_points -= 1
                 self.sequence[self.selected_index] = 2
                 self.sequence.insert(self.selected_index + 1, 2)
+                self.turn_number += 1
             self.update_display()
 
     def check_winner(self):
         if not self.sequence:
-            total_points = self.points + self.bank_points
-            if total_points % 2 == 0:
+            if self.points % 2 == 0 and self.bank_points % 2 == 0:
                 winner = "Pirmais spēlētājs"
-            else:
+            elif self.points % 2 == 1 and self.bank_points % 2 == 1:
                 winner = "Otrais spēlētājs"
+            else:
+                winner = "Neizšķirts"
             self.label.config(text=f"Spēle beigusies! Uzvar: {winner}")
 
     def update_display(self):
         self.label.config(text=f"Skaitļu virkne: {self.sequence}")
         self.points_label.config(text=f"Tavi punkti: {self.points}")
         self.bank_points_label.config(text=f"Bankas punkti: {self.bank_points}")
+        self.turn_label.config(text=f"Gājiens: {self.turn_number}")
         self.selected_index = None
 
         for button in self.number_buttons:
@@ -81,15 +134,45 @@ class Game:
             button = tk.Button(self.root, text=str(number), command=lambda i=index: self.select_number(i))
             button.pack(side="left")
             self.number_buttons.append(button)
-
+        
         self.check_winner()
+        if self.sequence:
+            self.select_player_turn()
+
+    def cpu_turn(self):
+        if len(self.sequence) > 1:
+            choice = randint(1,len(self.sequence)-1)
+        else:
+            choice = 0
+        self.select_number(choice)
+        selected_number = self.sequence[self.selected_index]
+        
+        if selected_number == 2 or selected_number == 4:
+            doSplit = randint(1,2)
+            if doSplit == 1:
+                self.last_CPU_move_label.config(text=f"Pēdējais CPU gājiens: sadalīt skaitli {selected_number}")
+                self.split_number()
+            else:
+                self.last_CPU_move_label.config(text=f"Pēdējais CPU gājiens: pievienot punktus {selected_number}")
+                self.add_to_points()
+        else:
+            self.last_CPU_move_label.config(text=f"Pēdējais CPU gājiens: pievienot punktus {selected_number}")
+            self.add_to_points()
+
+    def select_player_turn(self):
+        if self.player_starts is None:
+            return  # Don't proceed until player chooses who starts
+        if (self.player_starts and self.turn_number % 2 == 0) or (not self.player_starts and self.turn_number % 2 == 1):
+            self.turn_label.config(text=f"Gājiens: {self.turn_number} (Spēlētājs)")
+        else:
+            self.turn_label.config(text=f"Gājiens: {self.turn_number} (CPU)")
+            self.cpu_turn()
 
 def main():
-    length = randint(15, 20)  # Ģenerē skaitļu virknes garumu
     root = tk.Tk()
     root.title("Spēle ar skaitļu virkni")
 
-    game = Game(root, length)
+    game = Game(root)
 
     root.mainloop()
 
