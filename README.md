@@ -1,6 +1,6 @@
 # MI-1_projekts  
  Speles_izveide  
-
+<pre>
  Ā.S:  
  salaboju split_number un check_winner funkcijas  
 
@@ -26,3 +26,4 @@ testēšanai izmanto cpu_turn funkciju - jāpāraksta
 fieldCalc pārveido skaitļu virkni par [* * * *]  
 
 Tāda vismaz ir mana pagaidu ideja -Ā.S  
+</pre>
