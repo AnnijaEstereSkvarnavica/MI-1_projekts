@@ -2,11 +2,23 @@ import tkinter as tk
 from random import randint
 #import time
 
+class tree:
+    child = []
+    field = []
+    points = 0
+    bankPoints = 0
+    eval = None
+    depth = 0
+
 class Game:
     def __init__(self, root, length):
         self.root = root
         self.length = length
         self.sequence = [randint(1, 4) for _ in range(length)]  # Ģenerē skaitļu virkni
+        self.tree = tree()
+        self.tree.field = self.fieldCalc
+        self.currentNode = self.tree
+        self.generateTree(self.tree)
         self.points = 0
         self.bank_points = 0
         self.turn_number = 0
@@ -38,6 +50,7 @@ class Game:
 
         self.split_button = tk.Button(root, text="Sadala", command=self.split_number)
         self.split_button.pack(side="right")
+        
 
     def select_number(self, index):
         if self.selected_index is not None:
@@ -128,9 +141,112 @@ class Game:
         else:
             self.turn_label.config(text=f"Gājiens: {self.turn_number} (CPU)")
             self.cpu_turn()
+
+    def fieldCalc(self):
+        count = [0,0,0,0]
+        for number in self.currentNode.field:
+            match number:
+                case 1:
+                    count[0] = count[0]+1
+                    break
+                case 2:
+                    count[1] = count[1]+1
+                    break
+                case 3:
+                    count[2] = count[2]+1
+                    break
+                case 4:
+                    count[3] = count[3]+1
+                    break
+        return count
+    
+    # TODO: koka ģenerēšana. Pašlaik liekas diezgan sadirsta
+    # var neuztvert par nopietnu un pārakstīt ja rodas ideja
+    def generateTree(node):
+        count = node.field
+        for index, number in enumerate(count):
+            match index:
+                case 0: # izvelas 1 pievieno punktiem
+                    if number == 0: 
+                        break
+                    else:   # depth+1, ciparu_sk - 1,  punktu_sk + 1
+                        newChild = node
+                        newChild.depth = node.depth +1
+                        newChild.points = node.points + index+1
+                        newCount = count
+                        newCount[index] = newCount[index]-1
+                        newChild.field = newCount
+                        node.child.append(newChild) # pievieno jaunu lapu kokam
+
+                case 1: # izvelas 2 pievieno punktiem vai sadala
+                    if number == 0: 
+                        break
+                    else:   # depth+1, ciparu2_sk - 1,  punktu_sk + 2
+                        newChild = node
+                        newChild.depth = node.depth +1
+                        newChild.points = node.points + index+1
+                        newCount = count
+                        newCount[index] = newCount[index]-1
+                        newChild.field = newCount
+                        node.child.append(newChild) # pievieno jaunu lapu kokam
+                        # 2 sadala
+                        # depth+1, ciparu2_sk - 1, ciparu1_sk + 2  bankas_punktu_sk + 1
+                        newChild2 = node
+                        newChild2.depth = node.depth +1
+                        newChild2.bankPoints = node.bankPoints + 1
+                        newCount2 = count
+                        newCount2[index] = newCount[index]-1
+                        newCount2[0] = newCount2[0]+2
+                        newChild2.field = newCount
+                        node.child.append(newChild2) # pievieno jaunu lapu kokam
+
+                case 2: # izvelas 3 pievieno punktiem
+                    if number == 0: 
+                        break
+                    else:   # depth+1, ciparu3_sk - 1,  punktu_sk + 3
+                        newChild = node
+                        newChild.depth = node.depth +1
+                        newChild.points = node.points + index+1
+                        newCount = count
+                        newCount[index] = newCount[index]-1
+                        newChild.field = newCount
+                        node.child.append(newChild) # pievieno jaunu lapu kokam
+
+                case 3: # izvelas 4 pievieno punktiem
+                    if number == 0: 
+                        break
+                    else:   # depth+1, ciparu4_sk - 1,  punktu_sk + 4
+                        newChild = node
+                        newChild.depth = node.depth +1
+                        newChild.points = node.points + index+1
+                        newCount = count
+                        newCount[index] = newCount[index]-1
+                        newChild.field = newCount
+                        node.child.append(newChild) # pievieno jaunu lapu kokam
+                        # 4 sadala
+                        # depth+1, ciparu4_sk - 1, ciparu2_sk + 2
+                        newChild2 = node
+                        newChild2.depth = node.depth +1
+                        newCount2 = count
+                        newCount2[index] = newCount[index]-1
+                        newCount2[1] = newCount2[1]+2
+                        newChild2.field = newCount
+                        node.child.append(newChild2) # pievieno jaunu lapu kokam
+
+
+    def minMax(self):       # position, depth, maximisingPlayer
+        print("minMax")
+
+    # TODO: alphaBeta funkcija
+    def alphaBeta(self):    # position, depth, maximisingPlayer, alpha, beta
+        print("alphaBeta")
+        # valueFunction izsauks no šejienes
+
+    def valueFunction(self):
+        print("valueFunction")
             
 def main():
-    length = randint(15, 20)  # Ģenerē skaitļu virknes garumu
+    length = randint(4, 7)  # Ģenerē skaitļu virknes garumu
     root = tk.Tk()
     root.title("Spēle ar skaitļu virkni")
 
