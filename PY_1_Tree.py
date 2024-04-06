@@ -217,9 +217,11 @@ class Game:
         #self.update_game_tree() 
     def CPUMaximiser(self):
         bestResult: TreeNode = None
-        #if len(self.currentNode.field) == 1:
-        #    if self.currentNode.field[0] == 2 or self.currentNode.field[0] == 4:
-
+        if len(self.currentNode.field) == 1:
+            if self.currentNode.field[0] == 2 or self.currentNode.field[0] == 4:
+                return self.currentNode.children[0]
+            else:
+                return self.currentNode.children[0]
         for child in self.currentNode.children:
             print(child.field)
             if bestResult is None: # empty
@@ -231,8 +233,11 @@ class Game:
         
     def CPUMinimiser(self):
         bestResult: TreeNode = None
-        if len(self.currentNode.children) == 1:
-            return self.currentNode.children[0]
+        if len(self.currentNode.field) == 1:
+            if self.currentNode.field[0] == 2 or self.currentNode.field[0] == 4:
+                return self.currentNode.children[0]
+            else:
+                return self.currentNode.children[0]
         for child in self.currentNode.children:
             print(child.field)
             if bestResult is None: # empty
