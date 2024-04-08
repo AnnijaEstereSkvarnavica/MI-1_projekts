@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 from random import randint
-import copy
+import time
 
 class Game:
     def __init__(self, root):
@@ -18,7 +18,8 @@ class Game:
         self.tree_root: TreeNode = None  
         self.currentNode: TreeNode = None
         self.isMinMax = True
-
+        self.CPUturns = 0
+        self.CPUTimeTotal = 0
 
         self.label = tk.Label(root, text="Skaitļu virkne: ")
         self.label.pack()
@@ -110,7 +111,7 @@ class Game:
             self.number_buttons[self.selected_index].destroy()
             self.number_buttons.pop(self.selected_index)
             self.turn_number += 1
-            if player:
+            if player == True:
                 self.advanceNode(False, selected_number)
             self.update_display()
             #self.update_game_tree()
@@ -128,7 +129,7 @@ class Game:
                 self.sequence[self.selected_index] = 2
                 self.sequence.insert(self.selected_index + 1, 2)
                 self.turn_number += 1
-            if player:
+            if player == True:
                 self.advanceNode(True, selected_number)
             self.update_display()
             #self.update_game_tree() 
@@ -163,30 +164,6 @@ class Game:
             self.select_player_turn()
 
     def cpu_turn(self):
-        '''
-        if len(self.sequence) > 1:
-            choice = randint(1,len(self.sequence)-1)
-        else:
-            choice = 0
-        self.select_number(choice)
-        selected_number = self.sequence[self.selected_index]
-        split = False
-
-        if selected_number == 2 or selected_number == 4:
-            doSplit = randint(1,2)
-            if doSplit == 1:
-                self.last_CPU_move_label.config(text=f"Pēdējais CPU gājiens: sadalīt skaitli {selected_number}")
-                split = True
-                self.split_number(True)
-            else:
-                self.last_CPU_move_label.config(text=f"Pēdējais CPU gājiens: pievienot punktus {selected_number}")
-                split = False
-                self.add_to_points(True)
-        else:
-            self.last_CPU_move_label.config(text=f"Pēdējais CPU gājiens: pievienot punktus {selected_number}")
-            split = False
-            self.add_to_points(True)
-        '''
 
         bestResult: TreeNode = None
         if self.player_starts:
@@ -205,12 +182,13 @@ class Game:
                     split = True
                     self.last_CPU_move_label.config(text=f"Pēdējais CPU gājiens: sadalīt skaitli {selected_number}")
                     break
-            self.select_number(index)
-            selected_number = number
-            self.add_to_points(True)
-            split= False
-            self.last_CPU_move_label.config(text=f"Pēdējais CPU gājiens: pievienot punktus {selected_number}")
-            break
+                else:
+                    self.select_number(index)
+                    selected_number = number
+                    self.add_to_points(True)
+                    split= False
+                    self.last_CPU_move_label.config(text=f"Pēdējais CPU gājiens: pievienot punktus {selected_number}")
+                    break
 
         self.advanceNode(split,selected_number)
 
@@ -219,31 +197,34 @@ class Game:
         bestResult: TreeNode = None
         if len(self.currentNode.field) == 1:
             if self.currentNode.field[0] == 2 or self.currentNode.field[0] == 4:
-                return self.currentNode.children[0]
+                if self.currentNode.bank_points % 2 == 1:
+                    return self.currentNode.children[1]
+                else:
+                    return self.currentNode.children[0]
             else:
                 return self.currentNode.children[0]
         for child in self.currentNode.children:
-            print(child.field)
             if bestResult is None: # empty
                 bestResult = child
             if bestResult.eval <= child.eval:
                 bestResult = child # atrod node ar augstāko vērtējumu
-        print("================")
         return bestResult
         
     def CPUMinimiser(self):
         bestResult: TreeNode = None
         if len(self.currentNode.field) == 1:
             if self.currentNode.field[0] == 2 or self.currentNode.field[0] == 4:
-                return self.currentNode.children[0]
+                if self.currentNode.bank_points % 2 == 0:
+                    return self.currentNode.children[1]
+                else:
+                    return self.currentNode.children[0]
             else:
                 return self.currentNode.children[0]
         for child in self.currentNode.children:
-            print(child.field)
             if bestResult is None: # empty
                 bestResult = child
             if bestResult.eval >= child.eval:
-                bestResult = child # atrod node ar augstāko vērtējumu
+                bestResult = child # atrod node ar zemāko vērtējumu
         return bestResult
 
     def advanceNode(self, split: bool, number):
@@ -400,18 +381,16 @@ class TreeNode:
     @staticmethod
     def evaluate(root):
         if root.field:
-            if root.lastSplit == True:
-                value = len(root.field) + 30
-            else:
-                value = len(root.field)
+            twos = root.field.count(2)
+            value = twos
 
         else:
             if root.points % 2 == 1 and root.bank_points % 2 == 1:
-                value = 100
+                value = -100
             elif root.points % 2 == 1 or root.bank_points % 2 == 1:
                 value = 0
             else:
-                value = -100
+                value = 100
         return value
     #@staticmethod
     '''
