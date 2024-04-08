@@ -481,11 +481,11 @@ class TreeNode:
 
         else:
             if root.points % 2 == 1 and root.bank_points % 2 == 1:
-                value = 100
+                value = -100
             elif root.points % 2 == 1 or root.bank_points % 2 == 1:
                 value = 0
             else:
-                value = -100
+                value = 100
         return value
     #@staticmethod
     '''
