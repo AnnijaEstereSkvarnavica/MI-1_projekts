@@ -197,7 +197,7 @@ class Game:
         bestResult: TreeNode = None
         if len(self.currentNode.field) == 1:
             if self.currentNode.field[0] == 2 or self.currentNode.field[0] == 4:
-                if self.currentNode.bank_points % 2 == 1:
+                if self.currentNode.bank_points % 2 == 0:
                     return self.currentNode.children[1]
                 else:
                     return self.currentNode.children[0]
@@ -214,7 +214,7 @@ class Game:
         bestResult: TreeNode = None
         if len(self.currentNode.field) == 1:
             if self.currentNode.field[0] == 2 or self.currentNode.field[0] == 4:
-                if self.currentNode.bank_points % 2 == 0:
+                if self.currentNode.bank_points % 2 == 1:
                     return self.currentNode.children[1]
                 else:
                     return self.currentNode.children[0]
