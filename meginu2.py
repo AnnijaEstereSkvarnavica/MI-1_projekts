@@ -68,7 +68,7 @@ class Game:
         self.turn_label = tk.Label(root, text="Gājiens: 0")
         self.last_CPU_move_label = tk.Label(root, text="Pēdējais CPU gājiens:")
         self.number_buttons = []
-        self.add_button = tk.Button(root, text="Pievienot punktus", command=lambda: self.add_to_points(True)), state=tk.DISABLED)
+        self.add_button = tk.Button(root, text="Pievienot punktus", command=lambda: self.add_to_points(True), state=tk.DISABLED)
         self.split_button = tk.Button(root, text="Sadala", command=lambda: self.split_number(True), state=tk.DISABLED)
         self.new_game_button = tk.Button(root, text="Sākt jaunu spēli", command=self.start_new_game)
         self.end_game_button = tk.Button(root, text="Spēles beigas", command=self.end_game)
@@ -96,7 +96,6 @@ class Game:
         for widget in (self.label, self.points_label, self.bank_points_label,
                     self.turn_label, self.last_CPU_move_label,
                     self.add_button, self.split_button,
-                    self.start_button_player, self.start_button_cpu,
                     self.new_game_button, self.end_game_button):
             widget.pack()
 
@@ -105,9 +104,19 @@ class Game:
         for widget in (self.label, self.points_label, self.bank_points_label,
                     self.turn_label, self.last_CPU_move_label,
                     self.add_button, self.split_button,
-                    self.start_button_player, self.start_button_cpu,
                     self.new_game_button, self.end_game_button):
             widget.pack_forget()
+    def show_initial_screen(self):
+        # Show initial screen elements
+        self.length_label.pack()
+        self.length_entry.pack()
+        self.set_length_button.pack()
+        self.start_label.pack()
+        self.start_button_player.pack()
+        self.start_button_cpu.pack()
+        self.algorithm_label.pack()
+        self.minimax_button.pack()
+        self.alpha_beta_button.pack()
     def start_new_game(self):
     # Reset all game variables to their initial values
         self.length = None
@@ -121,7 +130,6 @@ class Game:
         self.player_starts = None
         self.tree_root = TreeNode([], 0, 0, None, False)  # Create the game tree root node
         self.currentNode = self.tree_root
-        
 
         # Enable/disable necessary buttons and widgets
         self.length_entry.config(state=tk.NORMAL)
@@ -130,10 +138,12 @@ class Game:
         self.start_button_cpu.config(state=tk.NORMAL)
         self.new_game_button.pack_forget()  
         self.end_game_button.pack_forget()  
-        self.show_initial_screen()  
 
-        
-        
+        # Hide game elements
+        self.hide_game_elements()
+
+        # Show initial screen elements
+        self.show_initial_screen()
 
     def end_game(self):
         self.root.quit()
@@ -185,7 +195,9 @@ class Game:
             self.minimax_button.config(state=tk.NORMAL)
             self.alpha_beta_button.config(state=tk.NORMAL)
         else:
-            self.cpu_turn()
+            #self.cpu_turn()
+            self.minimax_button.config(state=tk.NORMAL)
+            self.alpha_beta_button.config(state=tk.NORMAL)
 
     def select_number(self, index):
         if self.selected_index is not None:
@@ -481,11 +493,11 @@ class TreeNode:
 
         else:
             if root.points % 2 == 1 and root.bank_points % 2 == 1:
-                value = -100
+                value = 100
             elif root.points % 2 == 1 or root.bank_points % 2 == 1:
                 value = 0
             else:
-                value = 100
+                value = -100
         return value
     #@staticmethod
     '''
