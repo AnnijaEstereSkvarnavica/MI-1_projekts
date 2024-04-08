@@ -68,8 +68,8 @@ class Game:
         self.turn_label = tk.Label(root, text="Gājiens: 0")
         self.last_CPU_move_label = tk.Label(root, text="Pēdējais CPU gājiens:")
         self.number_buttons = []
-        self.add_button = tk.Button(root, text="Pievienot punktus", command=self.add_to_points, state=tk.DISABLED)
-        self.split_button = tk.Button(root, text="Sadala", command=self.split_number, state=tk.DISABLED)
+        self.add_button = tk.Button(root, text="Pievienot punktus", command=lambda: self.add_to_points(True), state=tk.DISABLED)
+        self.split_button = tk.Button(root, text="Sadala", command=lambda: self.split_number(True), state=tk.DISABLED)
         self.new_game_button = tk.Button(root, text="Sākt jaunu spēli", command=self.start_new_game)
         self.end_game_button = tk.Button(root, text="Spēles beigas", command=self.end_game)
 
@@ -96,7 +96,6 @@ class Game:
         for widget in (self.label, self.points_label, self.bank_points_label,
                     self.turn_label, self.last_CPU_move_label,
                     self.add_button, self.split_button,
-                    self.start_button_player, self.start_button_cpu,
                     self.new_game_button, self.end_game_button):
             widget.pack()
 
@@ -105,9 +104,19 @@ class Game:
         for widget in (self.label, self.points_label, self.bank_points_label,
                     self.turn_label, self.last_CPU_move_label,
                     self.add_button, self.split_button,
-                    self.start_button_player, self.start_button_cpu,
                     self.new_game_button, self.end_game_button):
             widget.pack_forget()
+    def show_initial_screen(self):
+        # Show initial screen elements
+        self.length_label.pack()
+        self.length_entry.pack()
+        self.set_length_button.pack()
+        self.start_label.pack()
+        self.start_button_player.pack()
+        self.start_button_cpu.pack()
+        self.algorithm_label.pack()
+        self.minimax_button.pack()
+        self.alpha_beta_button.pack()
     def start_new_game(self):
     # Reset all game variables to their initial values
         self.length = None
@@ -121,7 +130,6 @@ class Game:
         self.player_starts = None
         self.tree_root = TreeNode([], 0, 0, None, False)  # Create the game tree root node
         self.currentNode = self.tree_root
-        
 
         # Enable/disable necessary buttons and widgets
         self.length_entry.config(state=tk.NORMAL)
@@ -130,10 +138,12 @@ class Game:
         self.start_button_cpu.config(state=tk.NORMAL)
         self.new_game_button.pack_forget()  
         self.end_game_button.pack_forget()  
-        self.show_initial_screen()  
 
-        
-        
+        # Hide game elements
+        self.hide_game_elements()
+
+        # Show initial screen elements
+        self.show_initial_screen()
 
     def end_game(self):
         self.root.quit()
@@ -185,7 +195,9 @@ class Game:
             self.minimax_button.config(state=tk.NORMAL)
             self.alpha_beta_button.config(state=tk.NORMAL)
         else:
-            self.cpu_turn()
+            #self.cpu_turn()
+            self.minimax_button.config(state=tk.NORMAL)
+            self.alpha_beta_button.config(state=tk.NORMAL)
 
     def select_number(self, index):
         if self.selected_index is not None:
@@ -256,30 +268,6 @@ class Game:
             self.select_player_turn()
 
     def cpu_turn(self):
-        '''
-        if len(self.sequence) > 1:
-            choice = randint(1,len(self.sequence)-1)
-        else:
-            choice = 0
-        self.select_number(choice)
-        selected_number = self.sequence[self.selected_index]
-        split = False
-
-        if selected_number == 2 or selected_number == 4:
-            doSplit = randint(1,2)
-            if doSplit == 1:
-                self.last_CPU_move_label.config(text=f"Pēdējais CPU gājiens: sadalīt skaitli {selected_number}")
-                split = True
-                self.split_number(True)
-            else:
-                self.last_CPU_move_label.config(text=f"Pēdējais CPU gājiens: pievienot punktus {selected_number}")
-                split = False
-                self.add_to_points(True)
-        else:
-            self.last_CPU_move_label.config(text=f"Pēdējais CPU gājiens: pievienot punktus {selected_number}")
-            split = False
-            self.add_to_points(True)
-        '''
 
         bestResult: TreeNode = None
         if self.player_starts:
@@ -298,12 +286,13 @@ class Game:
                     split = True
                     self.last_CPU_move_label.config(text=f"Pēdējais CPU gājiens: sadalīt skaitli {selected_number}")
                     break
-            self.select_number(index)
-            selected_number = number
-            self.add_to_points(True)
-            split= False
-            self.last_CPU_move_label.config(text=f"Pēdējais CPU gājiens: pievienot punktus {selected_number}")
-            break
+                else:
+                    self.select_number(index)
+                    selected_number = number
+                    self.add_to_points(True)
+                    split= False
+                    self.last_CPU_move_label.config(text=f"Pēdējais CPU gājiens: pievienot punktus {selected_number}")
+                    break
 
         self.advanceNode(split,selected_number)
 
@@ -312,9 +301,10 @@ class Game:
         bestResult: TreeNode = None
         if len(self.currentNode.field) == 1:
             if self.currentNode.field[0] == 2 or self.currentNode.field[0] == 4:
-                return self.currentNode.children[0]
-            else:
-                return self.currentNode.children[0]
+                if self.currentNode.bank_points % 2 == 1:
+                    return self.currentNode.children[1]
+                else:
+                    return self.currentNode.children[0]
         for child in self.currentNode.children:
             print(child.field)
             if bestResult is None: # empty
@@ -328,9 +318,10 @@ class Game:
         bestResult: TreeNode = None
         if len(self.currentNode.field) == 1:
             if self.currentNode.field[0] == 2 or self.currentNode.field[0] == 4:
-                return self.currentNode.children[0]
-            else:
-                return self.currentNode.children[0]
+                if self.currentNode.bank_points % 2 == 0:
+                    return self.currentNode.children[1]
+                else:
+                    return self.currentNode.children[0]
         for child in self.currentNode.children:
             print(child.field)
             if bestResult is None: # empty
@@ -347,7 +338,7 @@ class Game:
                     self.firstPlayer = not self.firstPlayer
                     self.update_game_tree()
                     self.nodeEval = self.currentNode.eval
-                    self.node_eval.config(text=f"Pēdējā lauka vērtība: {self.nodeEval}")
+                    #self.node_eval.config(text=f"Pēdējā lauka vērtība: {self.nodeEval}")
                     break
                 else:
                     continue
